@@ -10,6 +10,8 @@ const pinecone = new Pinecone({
     environment: 'gcp-starter',
 });
 
+export const pineconeDB = pinecone.index('web');
+
 app.get('/', (c) => {
     return c.text(`The current router is ${app.routerName}`)
 })
@@ -22,8 +24,8 @@ app.get('/search', async (c) => {
         input: query || '',
     });
     const queryVector = embedding.data[0].embedding;
-    const results = await pinecone.index('web').query({ topK: 50, vector: queryVector, includeMetadata: true });
-    const resp = givenMatchGetNthResults(0, results.matches);
+    const results = await pinecone.index('web').query({ topK: 100, vector: queryVector, includeMetadata: true });
+    const resp = await givenMatchGetNthResults(0, results.matches);
 
     return c.json(resp);
 })
