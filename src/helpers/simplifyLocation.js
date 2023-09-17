@@ -1,4 +1,4 @@
-export function combineVerses(verses) {
+function combineVerses(verses) {
     const sortedVerses = sortVersesByIndex(verses);
     return groupConsecutiveVerses(sortedVerses);
 }
@@ -28,6 +28,7 @@ function groupConsecutiveVerses(verses) {
 }
 
 export function combineLists(inputList) {
+    inputList = combineVerses(inputList);
     return inputList
         .map(createCombinedListItem)
         .sort((a, b) => b.similarity - a.similarity);
@@ -47,7 +48,7 @@ function createCombinedListItem(subList) {
     };
 }
 
-function formatLocation(subList) {
+export function formatLocation(subList) {
     const firstItem = subList[0];
     const location = !firstItem.metadata.isChapter ? `${firstItem.metadata.bookName} ${firstItem.metadata.chapter}:${firstItem.metadata.verseNum}` : `${firstItem.metadata.bookName} ${firstItem.metadata.chapter}`;
 
@@ -68,7 +69,8 @@ function formatText(subList) {
         return subList
             .map(item => `${item.metadata.verseNum} ${item.metadata.verseText}`)
             .join(' ')
-            .replace(/\\/g, '');
+            .replace(/\\/g, '')
+            .trim();
     }
 
     const firstItem = subList[0];
@@ -76,3 +78,4 @@ function formatText(subList) {
         ? firstItem.metadata.verseText
         : firstItem.metadata.chapterText;
 }
+
