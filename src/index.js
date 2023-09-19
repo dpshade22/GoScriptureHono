@@ -1,6 +1,5 @@
 import { Hono } from 'hono'
 import { searchHandler } from './handlers/searchHandler'
-import { handle } from 'hono/vercel'
 
 const app = new Hono()
 
@@ -12,4 +11,7 @@ app.get('/search', searchHandler);
 
 app.showRoutes()
 
-export default handle(app)
+export default {
+    port: 3000,
+    fetch: app.fetch,
+}
