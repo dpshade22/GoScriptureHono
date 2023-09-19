@@ -15,7 +15,11 @@ function groupConsecutiveVerses(verses) {
         const prevVerse = verses[i - 1];
         const currentVerse = verses[i];
 
-        if (currentVerse.metadata.index - prevVerse.metadata.index === 1) {
+        if (
+            currentVerse.metadata.index - prevVerse.metadata.index === 1 &&
+            currentVerse.metadata.chapter === prevVerse.metadata.chapter &&
+            currentVerse.metadata.bookName === prevVerse.metadata.bookName
+        ) {
             currentGroup.push(currentVerse);
         } else {
             combinedVerses.push(currentGroup);

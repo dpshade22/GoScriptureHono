@@ -1,6 +1,7 @@
 import { Pinecone } from '@pinecone-database/pinecone'
-import { combineLists } from './simplifyLocation';
-import { formatLocation } from './simplifyLocation';
+import { combineLists } from './mergeVerses';
+import { formatLocation } from './mergeVerses';
+import { getVectorEmbeddingFromQuery } from '../helpers/openaiAPI';
 
 const bibleBooks = [
     "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra",
@@ -190,42 +191,54 @@ export async function fetchPassage(searchId) {
         const chapterText = result.records[searchId].metadata.chapterText;
         const chapterRange = result.records[searchId].metadata.verseNum;
 
-
-
-        let results = (await pineconeDB.query({ topK: 500, includeMetadata: true, id: searchId })).matches
-
-        results = combineLists(results);
-
         if (verseRange) {
             const [_, chapterLength] = chapterRange.split('-').map(Number);
             let [startVerse, endVerse] = verseRange.split('-').map(Number);
+
             let startIndex = chapterText.indexOf(startVerse);
             let endIndex = chapterText.indexOf(endVerse + 1);
+            let passageText = chapterText.slice(startIndex, endIndex).trim();
+
+            console.log(`Query is a passage: ${startVerse}-${endVerse}`);
 
             if (endIndex === -1) {
                 endIndex = chapterText.length;
             }
             if (chapterLength < endVerse) endVerse = chapterLength;
 
-            results.unshift(
+
+            const passageVectorEmbedding = await getVectorEmbeddingFromQuery(passageText);
+            let resp = (await pineconeDB.query({ topK: 500, vector: passageVectorEmbedding, includeMetadata: true })).matches;
+
+            resp = combineLists(resp);
+            resp.unshift(
                 {
                     id: -1,
                     location: `${searchId.replace(/_/g, ' ')}:${startVerse}-${endVerse}`,
-                    similarity: 1,
-                    verse: chapterText.slice(startIndex, endIndex).trim(),
+                    similarity: 2,
+                    verse: passageText,
                 }
             )
+
+            return resp;
         } else {
-            results.unshift({
+            console.log('Query is not a passage, rather a verse or chapter');
+            let resp = (await pineconeDB.query({ topK: 500, includeMetadata: true, id: searchId })).matches
+
+            resp = combineLists(resp);
+
+            resp[0].location != `${searchId.replace(/_/g, ' ')}` ? resp.unshift({
                 id: -1,
                 location: `${searchId.replace(/_/g, ' ')}`,
-                similarity: 1,
-                verse: verseText,
-            })
+                similarity: 2,
+                verse: verseText != -1 ? verseText : chapterText,
+            }) : console.log('Resp already contains verse or chapter')
+
+            return resp;
         }
 
-        return results;
     } catch {
+        console.log('Error')
         return false;
     }
 }

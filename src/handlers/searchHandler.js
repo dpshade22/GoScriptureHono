@@ -1,11 +1,9 @@
 // searchHandler.js
-import { combineLists } from '../helpers/simplifyLocation';
+import { combineLists } from '../helpers/mergeVerses';
 import { checkIfUserSearchContainsSpecificVerse, fetchPassage } from '../helpers/regexMatch';
-import { OpenAI } from 'openai'
 import { Pinecone } from '@pinecone-database/pinecone'
+import { getVectorEmbeddingFromQuery } from '../helpers/openaiAPI';
 
-
-const openai = new OpenAI();
 const pinecone = new Pinecone({
     apiKey: process.env.PINECONE_API_KEY,
     environment: 'gcp-starter',
@@ -19,16 +17,14 @@ export async function searchHandler(c) {
     const [isValid, searchId] = checkIfUserSearchContainsSpecificVerse(searchQuery)
 
     if (isValid) {
+        console.log('Query is a valid location');
         const resp = await fetchPassage(searchId)
         if (resp)
             return c.json(resp);
     }
-    const embedding = await openai.embeddings.create({
-        model: 'text-embedding-ada-002',
-        input: searchQuery || '',
-    });
-    const queryVector = embedding.data[0].embedding;
-    const results = await pineconeDB.query({ topK: 500, vector: queryVector, includeMetadata: true });
+
+    const queryVectorEmbedding = await getVectorEmbeddingFromQuery(searchQuery);
+    const results = await pineconeDB.query({ topK: 500, vector: queryVectorEmbedding, includeMetadata: true });
     const finalResultsList = combineLists(results.matches);
 
 
