@@ -1,6 +1,5 @@
 import { Pinecone } from '@pinecone-database/pinecone'
 import { combineLists } from './mergeVerses';
-import { formatLocation } from './mergeVerses';
 import { getVectorEmbeddingFromQuery } from '../helpers/openaiAPI';
 
 const bibleBooks = [
@@ -226,7 +225,6 @@ export async function fetchPassage(searchId) {
             let resp = (await pineconeDB.query({ topK: 500, includeMetadata: true, id: searchId })).matches
 
             resp = combineLists(resp);
-
             resp[0].location != `${searchId.replace(/_/g, ' ')}` ? resp.unshift({
                 id: -1,
                 location: `${searchId.replace(/_/g, ' ')}`,

@@ -1,0 +1,12 @@
+# flyctl launch added from .gitignore
+.env
+node_modules
+**/.DS_Store
+**/.vercel
+
+# flyctl launch added from node_modules/digest-fetch/.gitignore
+!node_modules/digest-fetch/**/.gitignore
+node_modules/digest-fetch/**/node_modules
+node_modules/digest-fetch/**/packing
+
+fly.toml

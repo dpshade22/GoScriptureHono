@@ -39,13 +39,13 @@ export function combineLists(inputList) {
 }
 
 function createCombinedListItem(subList) {
-    const index = subList[0].metadata.index;
+    const uniqueId = Math.floor(Math.random() * 1000000000);
     const combinedLocation = formatLocation(subList);
     const combinedSimilarity = calculateSimilarity(subList);
     const combinedText = formatText(subList);
 
     return {
-        id: index,
+        id: uniqueId,
         location: combinedLocation,
         similarity: combinedSimilarity,
         verse: combinedText,
